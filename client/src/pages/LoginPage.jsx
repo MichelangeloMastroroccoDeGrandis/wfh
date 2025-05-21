@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { loginStart, loginSuccess, loginFailure } from '../features/auth/authSlice';
+import styles from "../styles/LoginPage.module.css";
+import logo from '../assets/logo_no_text.png';
+
+
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -23,9 +27,10 @@ const LoginPage = () => {
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
+    <div className={styles.container}>
+      <img className={styles.logo} src={logo} alt="" width={100} />
+      <h2>WFH</h2>
+      <form className={styles.form} onSubmit={handleLogin}>
         <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
         <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" />
         <button type="submit" disabled={loading}>Login</button>

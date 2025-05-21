@@ -1,5 +1,5 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -23,11 +23,16 @@ a:hover {
 }
 
 body {
+  font-family: 'Montserrat', sans-serif;
   margin: 0;
   display: flex;
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Bebas Neue', sans-serif;
 }
 
 h1 {

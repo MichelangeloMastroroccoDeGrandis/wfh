@@ -1,14 +1,44 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Login from './pages/LoginPage';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import Dashboard from './pages/Dashboard';
+import AdminPage from './pages/AdminPage';
+import NotAuthorized from './pages/NotAuthorized';
+import ProtectedRoute from './components/ProtectedRoute';
+import Navbar from './components/Navbar';
+import ApproverPage from './pages/ApproverPage';
+import UserPage from './pages/UserPage';
 
-const App = () => {
+function App() {
+
+
   return (
-    <Routes>
-      <Route path="/" element={<Login />} />
-      {/* Add other routes like Dashboard later */}
-    </Routes>
+
+    <>
+       <Navbar />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<Dashboard />} />
+        </Route>
+
+        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+          <Route path="/admin" element={<AdminPage />} />
+        </Route>
+
+        <Route element={<ProtectedRoute allowedRoles={['approver']} />}>
+          <Route path="/approver" element={<ApproverPage />} />
+        </Route>
+
+        <Route element={<ProtectedRoute allowedRoles={['user']} />}>
+          <Route path="/user" element={<UserPage />} />
+        </Route>
+
+        <Route path="/not-authorized" element={<NotAuthorized />} />
+      </Routes>
+    </>
+
   );
-};
+}
 
 export default App;
