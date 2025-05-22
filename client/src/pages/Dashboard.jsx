@@ -1,73 +1,41 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../features/auth/authSlice';
-import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+import SideBar from '../components/SideBar';
+import AdminPage from './AdminPage';
+import ApproverPage from './ApproverPage';
+import UserPage from './UserPage';
+import styles from '../styles/Dashboard.module.css'; 
+import useFetchUserData from '../hooks/useFetchUserData';
 
 const Dashboard = () => {
-  const [data, setData] = useState(null);
-  const { token, user } = useSelector((state) => state.auth);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+    const { user } = useSelector((state) => state.auth);
+    const isInLoginPage = useLocation().pathname === '/login';  
+    const { loading, error } = useFetchUserData(); 
 
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/dashboard', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const result = await response.json();
-        setData(result);
-      } catch (error) {
-        console.error('Error fetching dashboard:', error);
-      }
-    };
-
-    fetchDashboard();
-  }, [token]);
-
-
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
-  };
-
-  if (!data) return <p className="p-4">Loading...</p>;
+  if (loading) return <p >Loading...</p>;
+  if (error) return <p >{error}</p>;
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Welcome, {user.name}</h1>
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-        >
-          Logout
-        </button>
-      </div>
+    <main className={styles.dashboard}>
+    <SideBar className={styles.sideBar} />
+        <div className={styles.mainContent}>
+            {!isInLoginPage && <Navbar />}
 
-      <p><strong>Role:</strong> {user.role}</p>
-      <p><strong>Email:</strong> {user.email}</p>
-      <p><strong>Position:</strong> {user.position}</p>
-      <p><strong>Team:</strong> {user.team}</p>
+        {/* Role-Based Display */}
+        {user.role === 'admin' && (
+            <AdminPage />
+        )}
 
-      {/* Role-Based Display */}
-      {data.role === 'admin' && (
-        <div className="mt-6 p-4 bg-gray-100 rounded">
-          <h2 className="text-xl font-semibold">Admin Tools</h2>
-          <p>Access user management, settings, etc.</p>
+        {user.role === 'approver' && (
+            <ApproverPage />
+        )}
+
+        {user.role === 'user' && (
+            <UserPage />
+        )}
         </div>
-      )}
-
-      {data.role === 'approver' && (
-        <div className="mt-6 p-4 bg-blue-100 rounded">
-          <h2 className="text-xl font-semibold">Approver Tools</h2>
-          <p>Review and approve WFH requests.</p>
-        </div>
-      )}
-    </div>
+    </main>
   );
 };
 

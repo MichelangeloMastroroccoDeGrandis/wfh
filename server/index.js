@@ -5,7 +5,13 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 
 import authRoutes from './routes/authRoutes.js';
+
 import dashboardRoutes from './routes/dashboardRoutes.js';
+
+import bcrypt from 'bcryptjs';
+const password = 'approver123';
+const hashedPassword = await bcrypt.hash(password, 10);
+console.log(hashedPassword);
 
 // Loads environment variables from a .env file into process.env
 dotenv.config();
