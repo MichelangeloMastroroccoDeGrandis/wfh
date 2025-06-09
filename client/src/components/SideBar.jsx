@@ -1,10 +1,13 @@
 import { useSelector } from "react-redux";
 import { Link } from 'react-router-dom';
+import useFetchUserData from '../hooks/useFetchUserData';
 
 const SideBar = () => {
-  const { user } = useSelector((state) => state.auth);
+    const { user } = useSelector((state) => state.auth);
+    const { loading, error } = useFetchUserData();
 
-    console.log(user.role)
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
 
     return (
         <div className="sidebar">

@@ -1,8 +1,10 @@
+import WfhRequestForm from '../components/WfhRequestForm';
+
 const UserPage = () => {
   return (
     <div >
       <h1 >User Panel</h1>
-      <p>This page will allow users to request WFH, see approvals, etc.</p>
+      <WfhRequestForm />
     </div>
   );
 };

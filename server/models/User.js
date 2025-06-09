@@ -29,7 +29,11 @@ const userSchema = new mongoose.Schema({
     office: String,
     country: String,
     timezone: String,
-    workingDays: [String], 
+    leaveCounts: {
+    wfh: { type: Number, default: 4 }, // default 4 days/month
+    sickLeave: { type: Number, default: 15 },
+    timeOff: { type: Number, default: 15 },
+    },
     employmentDate: Date,
     allowanceDays: {
         type: Number,

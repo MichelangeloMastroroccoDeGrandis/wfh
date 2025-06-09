@@ -2,16 +2,13 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
+import connectDB from './config/db.js';
+import helmet from 'helmet';
+
 
 import authRoutes from './routes/authRoutes.js';
-
 import dashboardRoutes from './routes/dashboardRoutes.js';
-
-import bcrypt from 'bcryptjs';
-const password = 'approver123';
-const hashedPassword = await bcrypt.hash(password, 10);
-console.log(hashedPassword);
+import wfhRoutes from './routes/wfhRoutes.js';
 
 // Loads environment variables from a .env file into process.env
 dotenv.config();
@@ -21,6 +18,9 @@ const app = express();
 
 //Enable Cors
 app.use(cors());
+
+// Helmet helps secure Express apps by setting various HTTP headers
+app.use(helmet());
 
 // Middleware to parse JSON requests bodies
 // without this middleware, the server cannot read JSON data sent in requests
@@ -33,19 +33,20 @@ app.use((req, res, next) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/wfh', wfhRoutes);
 
+app.use((req, res, next) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
+});
 
 // Connect to DB in MongoDB
 // mongoose is a MongoDB object modeling tool designed to work in an asynchronous environment
-const connectDB = async () => {
-    try {
-        await mongoose.connect(process.env.MONGO_URI);
-        console.log('✅ MongoDB connected');
-    } catch (error) {
-        console.error('❌ MongoDB connection error:', error);
-        process.exit(1); // Stop the app if DB fails   
-    }
-};
+
 connectDB();
 
 // Basic test route to check if the server is running
