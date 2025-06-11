@@ -5,24 +5,23 @@ import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import helmet from 'helmet';
 
-
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import wfhRoutes from './routes/wfhRoutes.js';
 
-// Loads environment variables from a .env file into process.env
+// 1. Loads environment variables from a .env file into process.env
 dotenv.config();
 
-// Initialize express app (creates an instances of the express application)
+// 2. Initialize express app (creates an instances of the express application)
 const app = express();
 
-//Enable Cors
+// 3. Enable Cors
 app.use(cors());
 
-// Helmet helps secure Express apps by setting various HTTP headers
+// 4. Helmet helps secure Express apps by setting various HTTP headers
 app.use(helmet());
 
-// Middleware to parse JSON requests bodies
+// 5. Middleware to parse JSON requests bodies
 // without this middleware, the server cannot read JSON data sent in requests
 app.use(express.json());
 
@@ -31,8 +30,9 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/api/auth', authRoutes);
-app.use('/api/dashboard', dashboardRoutes);
+// 6. Middleware to handle routes
+app.use('/api/auth', authRoutes); // Handles authentication routes like login and registration AdminOnly
+app.use('/api/dashboard', dashboardRoutes); 
 app.use('/api/wfh', wfhRoutes);
 
 app.use((req, res, next) => {
@@ -44,7 +44,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-// Connect to DB in MongoDB
+// 7. Connect to DB in MongoDB
 // mongoose is a MongoDB object modeling tool designed to work in an asynchronous environment
 
 connectDB();

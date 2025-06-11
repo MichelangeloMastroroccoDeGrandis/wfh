@@ -1,24 +1,34 @@
-import WfhRequest from '../models/WfhRequest.js';
+import WfhRequest from '../models/WfhRequest.js'; // Importing WfhRequest schema from models 
 import User from '../models/User.js';
 import nodemailer from 'nodemailer';
 import { startOfWeek, endOfWeek, isWithinInterval, addWeeks, parseISO } from 'date-fns';
 
 export const requestWfh = async (req, res) => {
+
+  // Nodemailer is used to send emails, it is compose of 3 steps: 
+  //    1. nodemailer.createTransport() for connection
+  //    2. mailOptions object for content of email
+  //    3. transporter.sendMail() to send email
+
   try {
+
+    // Extracting type and date from request body and user from request object
     const { type, date } = req.body;
     const user = req.user;
 
-    const selectedDate = parseISO(date);
+    // Validate date is within the next week
+    const selectedDate = parseISO(date); // parseISO convert date string to Date object
     const today = new Date();
-    const nextWeekStart = startOfWeek(addWeeks(today, 1), { weekStartsOn: 1 });
-    const nextWeekEnd = endOfWeek(addWeeks(today, 1), { weekStartsOn: 1 });
+    const nextWeekStart = startOfWeek(addWeeks(today, 1), { weekStartsOn: 1 }); // startOfWeek gets the start of the week for a given date, addWeeks adds 1 week to today
+    const nextWeekEnd = endOfWeek(addWeeks(today, 1), { weekStartsOn: 1 }); // endOfWeek gets the end of the week for a given date, addWeeks adds 1 week to today
 
-    // 1. Week Constraint
-    if (!isWithinInterval(selectedDate, { start: nextWeekStart, end: nextWeekEnd })) {
+    // Week Constraint
+    // isWithinInterval checks if the date is within a specified interval, if not within the next week, return error
+    if (!isWithinInterval(selectedDate, { start: nextWeekStart, end: nextWeekEnd })) { 
       return res.status(400).json({ message: 'You can only request WFH for next week.' });
     }
 
-    // 2. WFH Limit Per Week
+    // WFH Limit Per Week
     const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
     const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
 
@@ -28,12 +38,12 @@ export const requestWfh = async (req, res) => {
       type: 'wfh',
     });
 
-    const maxDays = ['CTO', 'CEO', 'COO'].includes(user.position) ? 2 : 1;
+    const maxDays = ['CTO', 'CEO', 'COO'].includes(user.position) ? 2 : 1; // Define max WFH days per week based on position, if position is CTO, CEO or COO, max days is 2, otherwise it is 1
     if (userRequests.length >= maxDays) {
       return res.status(400).json({ message: `You can request up to ${maxDays} WFH day(s) per week.` });
     }
 
-    // 3. Colleague Conflict
+    // Colleague Conflict
     const conflict = await WfhRequest.findOne({
       date,
       type: 'wfh',
@@ -44,7 +54,7 @@ export const requestWfh = async (req, res) => {
       return res.status(400).json({ message: `Colleague ${conflict.user.name} already has WFH on this date.` });
     }
 
-    // 4. Save Request (pending by default)
+    // Save Request (pending by default)
     const newRequest = await WfhRequest.create({
       user: user._id,
       type,
@@ -52,10 +62,11 @@ export const requestWfh = async (req, res) => {
       status: 'pending'
     });
 
-    // 5. Send Email to Admin/Approver (next step)
+    // Send Email to Admin/Approver (next step)
     // Fetch all Admins and Approvers
 const approvers = await User.find({ role: { $in: ['admin', 'approver'] } });
 
+// 1. Transporter is an object that manages the connection and communication with an SMTP server
 const transporter = nodemailer.createTransport({
   service: 'Gmail',
   auth: {
@@ -64,6 +75,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// 2. mailOptions defines the email content, forEach() iterates over each approver (approver & admin) to send the email
 approvers.forEach((approver) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -72,6 +84,7 @@ approvers.forEach((approver) => {
     text: `${user.name} has requested ${type.toUpperCase()} for ${date}. Please review it in the approval page.`,
   };
 
+// 3. Send email to each approver
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) console.error('Error sending email:', error);
     else console.log('Email sent:', info.response);
@@ -85,6 +98,7 @@ approvers.forEach((approver) => {
   }
 };
 
+// Return all pending WFH requests
 export const getPendingRequests = async (req, res) => {
   try {
     const requests = await WfhRequest.find({ status: 'pending' }).populate('user', 'name email position');
@@ -95,38 +109,55 @@ export const getPendingRequests = async (req, res) => {
   }
 };
 
+// Find WFH by ID and set status to approved, save and return success message
 export const approveRequest = async (req, res) => {
   try {
     const { id } = req.params;
     console.log("🔍 Approving request ID:", id);
 
-    const request = await WfhRequest.findById(id);
+    const request = await WfhRequest.findById(id); // Find WFH request by ID
     console.log("📝 Fetched request:", request);
 
     if (!request) {
-      return res.status(404).json({ message: 'Request not found' });
+      return res.status(404).json({ message: 'Request not found' }); // Return error if request not found
     }
 
-    request.status = 'approved';
-    await request.save();
+    request.status = 'approved'; // Set request status to approved
+    await request.save(); // Save the updated request
 
-    res.json({ message: 'Request approved', request });
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: request.user.email,
+      subject: 'Your WFH request has been approved',
+      text: `Hi ${request.user.name}, your WFH request for ${request.date} has been approved.`,
+    });
+
+    res.json({ message: 'Request approved', request }); // Return success message with updated request
   } catch (error) {
     console.error("❌ Error approving request:", error);
     res.status(500).json({ message: 'Failed to approve request' });
   }
 };
 
+// Find WFH by ID and set status to rejected, save and send email to user
 export const rejectRequest = async (req, res) => {
-  const { reason } = req.body;
+  const { reason } = req.body; // Extract reason from request body
 
   try {
-    const request = await WfhRequest.findById(req.params.id).populate('user');
+    const request = await WfhRequest.findById(req.params.id).populate('user');  // Find WFH request by ID and populate user details
 
     if (!request) return res.status(404).json({ message: 'Request not found' });
 
-    request.status = 'rejected';
-    await request.save();
+    request.status = 'rejected'; // Set request status to rejected
+    await request.save(); // Save the updated request
 
     // Send rejection email
     const transporter = nodemailer.createTransport({
