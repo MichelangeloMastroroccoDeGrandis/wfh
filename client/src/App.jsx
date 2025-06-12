@@ -40,6 +40,8 @@ function App() {
           <Route path="/myaccount" element={<MyAccount />} />
         </Route>
 
+        
+
         <Route path="/not-authorized" element={<NotAuthorized />} />
       </Routes>
     </>

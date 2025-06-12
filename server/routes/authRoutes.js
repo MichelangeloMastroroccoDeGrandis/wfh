@@ -1,7 +1,8 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
-import generateToken from '../utils/generateToken.js';
+import {loginUser } from '../utils/generateToken.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -50,12 +51,34 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const token = generateToken(user._id); // Generate JWT token for the user
+    const token = loginUser(user._id); // Generate JWT token for the user
     res.json({ token, user }); // Send token and user details in response
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error' });
   }
+});
+
+router.post('/refresh', (req, res) => {
+  const token = req.cookies.refreshToken;
+
+  if (!token) {
+    return res.status(401).json({ message: 'No refresh token provided' });
+  }
+
+  jwt.verify(token, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Invalid refresh token' });
+    }
+
+    const accessToken = jwt.sign(
+      { userId: decoded.userId },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    return res.json({ token: accessToken });
+  });
 });
 
 export default router;

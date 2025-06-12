@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import wfhRoutes from './routes/wfhRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 // 1. Loads environment variables from a .env file into process.env
 dotenv.config();
@@ -31,9 +32,10 @@ app.use((req, res, next) => {
 });
 
 // 6. Middleware to handle routes
-app.use('/api/auth', authRoutes); // Handles authentication routes like login and registration AdminOnly
-app.use('/api/dashboard', dashboardRoutes); 
-app.use('/api/wfh', wfhRoutes);
+app.use('/api/auth', authRoutes); // Handles authentication routes like login and registration
+app.use('/api/dashboard', dashboardRoutes); // Handles dashboard routes 
+app.use('/api/wfh', wfhRoutes); // Handles work from home requests and approvals
+app.use('/api/admin', adminRoutes); // Handles admin routes like user management
 
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Route not found' });
