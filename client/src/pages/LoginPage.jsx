@@ -16,6 +16,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+
   // ✅ Redirect after successful login
   useEffect(() => {
     if (token && user) { 
@@ -34,6 +35,8 @@ const LoginPage = () => {
       dispatch(loginFailure('Invalid credentials'));
     }
   };
+
+ 
 
   return (
     <div className={styles.container}>
@@ -56,7 +59,9 @@ const LoginPage = () => {
         <button type="submit" disabled={loading}>
           {loading ? 'Logging in...' : 'Login'}
         </button>
+
         {error && <p style={{ color: 'red' }}>{error}</p>}
+
       </form>
     </div>
   );

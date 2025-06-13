@@ -1,3 +1,4 @@
+import AdminUserTable from '../components/AdminUserTable';
 import Wrapper from "../components/Wrapper";
 
 const Team = () => {
@@ -5,7 +6,7 @@ const Team = () => {
         <Wrapper>
         <div className="team">
             <h1>Team</h1>
-            <p>Manage your team members here.</p>
+            <AdminUserTable />
         </div>
         </Wrapper>
     );
