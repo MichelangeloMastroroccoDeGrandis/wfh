@@ -9,6 +9,7 @@ import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import wfhRoutes from './routes/wfhRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import calendarRoutes from './routes/calendarRoutes.js';
 
 // 1. Loads environment variables from a .env file into process.env
 dotenv.config();
@@ -36,6 +37,7 @@ app.use('/api/auth', authRoutes); // Handles authentication routes like login an
 app.use('/api/dashboard', dashboardRoutes); // Handles dashboard routes 
 app.use('/api/wfh', wfhRoutes); // Handles work from home requests and approvals
 app.use('/api/admin', adminRoutes); // Handles admin routes like user management
+app.use('/api/calendar', calendarRoutes);
 
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Route not found' });

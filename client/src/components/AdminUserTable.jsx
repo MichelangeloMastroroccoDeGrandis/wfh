@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 const AdminUserTable = () => {
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState(['admin', 'approver', 'user']);
+  const [passwords, setPasswords] = useState({});
+
 
   const token = localStorage.getItem('token');
 
@@ -104,7 +106,7 @@ const AdminUserTable = () => {
                 </button>
               </td>
               <td>
-                <input type="text" value={user.password || ''}
+                <input type="text" value={passwords[user._id] || ''}
                   onChange={(e) => handlePasswordChange(user._id, e.target.value)}
                   placeholder="Change Password"
                   

@@ -13,11 +13,15 @@ router.get('/users', protect, adminOnly, async (req, res) => {
 
 // Delete a user
 router.delete('/users/:id', protect, adminOnly, async (req, res) => {
-  const user = await User.findById(req.params.id); // Find user by ID
-  if (!user) return res.status(404).json({ message: 'User not found' });
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
-  await user.remove(); // Remove user from database
-  res.json({ message: 'User deleted' });
+    res.json({ message: 'User deleted' });
+  } catch (err) {
+    console.error('Error deleting user:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // Update user password
